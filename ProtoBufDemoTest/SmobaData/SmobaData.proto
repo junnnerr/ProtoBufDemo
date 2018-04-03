@@ -1,0 +1,232 @@
+syntax = "proto3";
+
+// package wj.smoba;
+option objc_class_prefix = "WJ";
+// java_package = "com.wj.smoba";
+
+
+///////////////////   公共值 枚举定义  //////////////////////////
+//协议命令字
+enum CMD {
+	CMD_UNKNOW = 0x0;
+	CMD_APP_SVR_GET_GAME_STATUS_REQ = 0x1001;
+	CMD_APP_SVR_GET_GAME_STATUS_RESP = 0x1002;
+	CMD_APP_SVR_ACCOUNT_APPLY_REQ = 0x1003;
+	CMD_APP_SVR_ACCOUNT_APPLY_RESP = 0x1004;
+	CMD_APP_SVR_REPORT_LOGIN_RESULT_REQ = 0x1005;
+	CMD_APP_SVR_REPORT_LOGIN_RESULT_RESP = 0x1006;
+	CMD_APP_SVR_GET_BATTLE_RESULT_REQ = 0x1007;
+	CMD_APP_SVR_GET_BATTLE_RESULT_RESP = 0x1008;
+	
+	CMD_SMOBA_SVR_LOGIN_REQ = 0x2001;
+	CMD_SMOBA_SVR_LOGIN_RESP = 0x2002;
+	CMD_SMOBA_SVR_PROGRESS_REPORT_REQ = 0x2003;
+	CMD_SMOBA_SVR_CREATE_ROOM_REQ = 0x2005;
+	CMD_SMOBA_SVR_CREATE_ROOM_RESP = 0x2006;
+	CMD_SMOBA_SVR_JOIN_ROOM_REQ = 0x2007;
+	CMD_SMOBA_SVR_JOIN_ROOM_RESP = 0x2008;
+	CMD_SMOBA_SVR_BATTLE_START_REQ = 0x2009;
+	CMD_SMOBA_SVR_BATTLE_START_RESP = 0x200a;
+	CMD_SMOBA_SVR_BATTLE_FINISH_REQ = 0x2011;
+	CMD_SMOBA_SVR_BATTLE_FINISH_RESP = 0x2012;
+
+    CMD_APP_SMOBA_ACCOUNT_INFO_REQ = 0x3001;
+    CMD_APP_SMOBA_ACCOUNT_INFO_RESP = 0x3002;
+	CMD_APP_SMOBA_JOIN_ROOM_REQ = 0x3003;
+	CMD_APP_SMOBA_JOIN_ROOM_RESP = 0x3004;
+
+
+
+
+    CMD_APP_GM_RELEASE_ACCOUNT_REQ = 0x9001;
+    CMD_APP_GM_RELEASE_ACCOUNT_RESP = 0x9002;
+}
+
+//错误码
+enum RetCode{
+	RC_OK = 0;
+    RC_ACCOUNT_INFO_INVAIL = 1; // 本地登录信息无效
+    RC_ZONE_INFO_INVAIL = 2; // 区服无效，无法登陆
+    RC_HEROID_INVAIL = 3; // 当前玩家无法使用该英雄
+    RC_ROOM_TYPE_INVAIL = 4; // 房间类型无效
+}
+
+//游戏进度
+enum GameStatus {
+GAME_STATUS_UNKNOWN = 0;   //未知状态
+GAME_STATUS_INIT = 1; // 初始状态
+GAME_STATUS_IN_LOBBY = 2; // 在大厅等待
+GAME_STATUS_IN_ROOM = 3; // 在房间中
+GAME_STATUS_SELECTING_HERO = 4; //选择英雄中
+GAME_STATUS_GAMING = 5; //游戏中
+}
+
+//房间类型
+enum RoomType{
+	ROOM_TYPE_UNKNOW = 0;
+	ROOM_TYPE_5V5_WZXG_COMMON = 0x1; //5V5普通王者峡谷
+	ROOM_TYPE_5V5_WZXG_CONCSCRIPT = 0x2; //5V5征召王者峡谷
+	ROOM_TYPE_5V5_FFA = 0x3; //5V5深渊大乱斗
+	ROOM_TYPE_3V3 = 0x4; //3V3长平攻防战
+	ROOM_TYPE_1V1 = 0x5; //1V1墨家机关道
+}
+
+//阵营类型
+enum CampSider{
+	CAMP_SIDER_UNKNOW = 0; //阵营，未知、傻逼团队
+	CAMP_SIDER_BLUE = 1; //阵营，蓝方、左侧团队
+	CAMP_SIDER_RED = 2; //阵营，红方、右侧团队
+}
+
+///////////////////   基础结构定义  //////////////////////////
+//本地登录信息
+message AccountInfo {
+	string platformType = 1; //账号平台类型
+	string openid = 2;  //腾讯开放平台openid，唯一
+	string accessToken = 3; //登录态
+	string payToken = 4;  //支付态， 暂时忽略
+	string launchFrom = 5; //呼起方式, 暂时忽略
+	string account = 6; //qq号
+}
+
+//王者游戏区服信息
+message ZoneInfo{
+	uint32 zoneId = 1;   //区服Id
+	string zoneName = 2; //区服名称
+}
+
+//房间信息
+message RoomInfo {
+	string RoomId=1; //房间Id
+}
+
+//召唤师资料
+message PlayerInfo {
+	uint64 playerUid = 1;      // 召唤师ID
+	string playerName = 2;    // 召唤师名称
+	uint64 playerLevel = 3;   // 召唤师等级
+}
+
+//比赛结果详细数据
+message BattleDetailData {
+	uint32 score = 1;  //本局打分
+	uint32 totalCoin = 2; //经济
+	uint32 killSoldier = 3; //击杀士兵数
+	uint32 killMonster = 4; //击杀野怪数
+	uint32 kill = 5;   // K
+	uint32 dead = 6;   // D
+	uint32 assist = 7;  // A
+	uint32 doubleKillNum = 8;
+	uint32 soulLevel = 9;  //英雄等级
+	repeated uint32 equipIds = 10;  //出装顺序
+}
+
+//比赛结果召唤师数据
+message BattlePlayerData {
+	PlayerInfo playerInfo = 1;  // 召唤师信息
+	CampSider campSider = 3;  // 阵营方，参见CampSider定义
+	string heroSkin = 4;      // 英雄+皮肤 组合唯一Id
+	string heroName = 5;      // 英雄名称
+	BattleDetailData battleDetailData = 6; // 比赛数据
+}
+
+
+
+///////////////////  APP-SMOBA 通信协议  //////////////////////////
+//moba向app请求账号信息
+message AccountInfoReq {
+}
+message AccountInfoResp {
+	AccountInfo accountInfo = 1;
+}
+//安卓端使用，moba向app请求加入房间
+message JoinRoomSBReq{
+	string roomId = 1; //房间Id
+}
+message JoinRoomSBResp{
+}
+
+
+///////////////////  APP-SERVER 通信协议  //////////////////////////
+//获取游戏状态
+message GetGameStatusReq{
+}
+message GetGameStatusResp{
+    GameStatus gameStatus = 1; //游戏状态
+}
+
+//申请账号
+message ApplyAccountReq{
+}
+message ApplyAccountResp{
+	string account = 1; //qq号
+	string password = 2; //qq密码
+}
+
+//上报登录结果
+message ReportLoginResultReq{
+    string account = 1; //qq号
+    uint32 loginSucc = 2; //登录结果, 0:失败；1:成功
+}
+message ReportLoginResultResp{
+}
+
+//拉取比赛结果
+message GetBattleResultReq{
+	string battleId = 1; //战局Id， 暂时忽略
+}
+message GetBattleResultResp{
+	CampSider campSiderWin = 1;     // 获胜方，参见CampSider定义
+	repeated BattlePlayerData battlePlayerData = 2; //所有召唤师的本局比赛数据
+}
+
+///////////////////  SMOBA-SERVER 通信协议  //////////////////////////
+message LoginReq{
+    string account = 1; //qq号
+}
+message LoginResp{
+    ZoneInfo iosZoneInfo = 1; //区服信息, ios
+    ZoneInfo androidZoneInfo = 2; //区服信息, android
+}
+
+//客户端进度上报
+message ProgressResportReq {
+  	PlayerInfo playerInfo = 1;
+	GameStatus gameStatus = 2;
+}
+
+//通知房主，创建房间
+message CreateRoomReq {
+	RoomType roomType=1; //房间类型， 参见RoomType定义
+}
+message CreateRoomResp {
+	RoomInfo roomInfo = 1;
+}
+
+//通知玩家，加入房间
+message JoinRoomReq {
+	string roomId = 1; //房间Id
+}
+message JoinRoomResp {
+}
+
+//通知房主，开始比赛
+message BattleStartReq {
+}
+message BattleStartResp {
+}
+
+//比赛结束，上报比赛结果
+message BattleFinishReq {
+	CampSider campSiderWin = 1;     // 获胜方，参见CampSider定义
+	repeated BattlePlayerData battlePlayerData = 2; //所有召唤师的本局比赛数据
+}
+message BattleFinishResp {
+}
+
+///////////////////  GM指令  //////////////////////////
+//释放账号， 调试阶段使用
+message GMReleaseAccountReq{
+}
+message GMReleaseAccountResp{
+}
